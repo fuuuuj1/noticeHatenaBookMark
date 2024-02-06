@@ -63,4 +63,34 @@ class RSSParseServiceTest extends TestCase
 
         $this->assertEquals($expected_data, $response);
     }
+
+    public function test_RSSへの通信に失敗(): void
+    {
+        // Create an instance of the RSSParseService
+        $rss_parse_service = new RSSParseService();
+
+        // Mock the Http facade to return a failed response
+        Http::fake([
+            '*' => Http::response('', 500),
+        ]);
+
+        // Call the parse method and assert the result
+        $this->expectException(\InvalidArgumentException::class);
+        $rss_parse_service->fetchEntries();
+    }
+
+    public function test_提供されたURLがRSSフィードを含まない(): void
+    {
+        // Create an instance of the RSSParseService
+        $rss_parse_service = new RSSParseService('https://example.com');
+
+        // Mock the Http facade to return a failed response
+        Http::fake([
+            '*' => Http::response('', 200),
+        ]);
+
+        // Call the parse method and assert the result
+        $this->expectException(\InvalidArgumentException::class);
+        $rss_parse_service->fetchEntries();
+    }
 }
