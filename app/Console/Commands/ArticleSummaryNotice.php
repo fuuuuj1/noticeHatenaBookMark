@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\RSSParseService;
 use Illuminate\Console\Command;
 
 class ArticleSummaryNotice extends Command
@@ -31,6 +32,15 @@ class ArticleSummaryNotice extends Command
         // はてなブックマークのテクノロジーカテゴリのホットエントリーを取得する
         // こちらの処理は専用のServiceクラスに切り出す
         // 5つまでの記事URLを取得する
+        $parse_service = new RSSParseService();
+        // ここでエラーが発生する場合は処理を中断する
+        try {
+            $hot_entries = $parse_service->fetchEntries(5);
+        } catch (\Throwable $th) {
+            // 通知に関してはServiceクラス内で行う
+            $this->error($th->getMessage());
+            return;
+        }
 
         // ここからloopでの処理を予定
 
