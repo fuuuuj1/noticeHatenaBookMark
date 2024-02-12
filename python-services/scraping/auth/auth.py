@@ -1,4 +1,5 @@
 import os
+import traceback
 
 def handler(event, context):
 
@@ -27,5 +28,7 @@ def handler(event, context):
             print('denied')
             return response
     except BaseException:
-        print('error')
+        # エラー内容をログに出力
+        print('Error: {}'.format(BaseException))
+        print('Traceback: {}'.format(traceback.format_exc()))
         return response
