@@ -1,0 +1,39 @@
+service: scraping
+app: python-scraping
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  region: ap-northeast-1
+  profile: default
+  runtime: python3.11
+  environment: ${file(./environment.yml)}
+  memorySize: 256
+  timeout: 30
+  httpApi:
+    authorizers:
+      customAuthorizer:
+        type: request
+        enableSimpleResponses: true
+        functionName: auth
+
+package:
+  individually: true
+
+functions:
+  scraping:
+    handler: handler.lambda_handler
+    module: scraping
+    events:
+      - httpApi:
+          method: post
+          path: /scraping
+          authorizer:
+            name: customAuthorizer
+
+  auth:
+    handler: auth/auth.handler
+
+plugins:
+  - serverless-python-requirements
