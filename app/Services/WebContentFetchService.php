@@ -15,8 +15,13 @@ class WebContentFetchService
      * @param array $urls
      * @return array
      */
-    public static function fetchContent(array $urls): array
+    public function fetchContent(array $urls): array
     {
+        // 万が一URLが空の場合は例外を投げる
+        if (empty($urls)) {
+            throw new \InvalidArgumentException('URLs are empty.');
+        }
+
         // サイト本文を取得するapiを叩く
         // headerにAuthorizationをつける
         try {
@@ -40,4 +45,3 @@ class WebContentFetchService
         }
     }
 }
-
