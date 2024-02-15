@@ -41,6 +41,7 @@ class WebContentFetchService
 
         } catch (\Throwable $th) {
             logger()->error($th);
+            // TODO: slackにエラーを通知する
             throw $th;
         }
     }

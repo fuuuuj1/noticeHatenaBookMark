@@ -99,6 +99,9 @@ class RSSParseService
             // レスポンスが成功した場合はRSSが正しい形式かどうかをチェックする
             $this->validateRss($response);
 
+            // Memo コメントにあるように、効率的な方法があるのかを検討する
+            // json_decode(json_encode($rss))を使用してオブジェクトを配列に変換している部分については、より効率的な方法を検討する価値があります。
+            // 例えば、SimpleXMLElementオブジェクトを直接操作して必要なデータを抽出する方法などです。
             $rss = new SimpleXMLElement($response->body());
 
             // 一度jsonに変換してから配列に変換する
