@@ -57,7 +57,30 @@ class RSSParseService
     }
 
     /**
-     * RSSをパースしてtitleとlinkを格納した配列を返す
+     * 特定のサイトであるならば、取得しないようにする
+     * github, speakerdeck
+     * 認証が必要なサイトや、文字列を取得することが困難なサイトは取得しない
+     * TODO: 他にも取得しないサイトがあれば追加できるようにコード管理をしない体制を整える
+     * dynamodbに取得しないサイトを保存しておくとか？
+     *
+     * @param string $link
+     * @return bool
+     */
+    private function checkLinkString(string $link): bool
+    {
+        if (strpos($link, 'github.com') !== false) {
+            return false;
+        }
+
+        if (strpos($link, 'speakerdeck.com') !== false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * RSSをパースしてlinkを格納した配列を返す
      *
      * @param int $limit
      * @return array
@@ -81,18 +104,20 @@ class RSSParseService
             // 一度jsonに変換してから配列に変換する
             $rss = json_decode(json_encode($rss));
 
-            $items = $rss->item;
-            // $itemsをlimit数の数だけ取得
-            $items = array_slice($items, 0, $limit);
+            // itemがchannelの中にある場合とない場合があるので、それぞれの場合で処理を分ける
+            $items = $rss->channel->item ?? $rss->item;
 
-            $hot_entries = array_map(function ($item) {
-                return [
-                    'title' => (string) $item->title,
-                    'link' => (string) $item->link,
-                ];
-            }, $items);
-
-            return $hot_entries;
+            // linkのみの配列を作成する
+            $urls = [];
+            foreach ($items as $item) {
+                if ($this->checkLinkString($item->link)) {
+                    $urls[] = $item->link;
+                }
+                if (count($urls) >= $limit) {
+                    break;
+                }
+            }
+            return $urls;
         } catch (\Throwable $th) {
             // 例外をキャッチしてログに出力する
             logger()->error($th);

@@ -31,4 +31,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'rss' => [
+        'mentas' => env('RSS_MENTAS'),
+        'hatena_hotentry' => env('RSS_HATENA_HOTENTRY'),
+    ],
+
+    'lambda' => [
+        'endpoint' => env('LAMBDA_ENDPOINT'),
+        'authorization' => env('LAMBDA_AUTHORIZATION'),
+    ],
+
 ];
