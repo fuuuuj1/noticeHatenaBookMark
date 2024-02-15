@@ -32,8 +32,8 @@ return [
     ],
 
     'rss' => [
-        'mentas' => env('RSS_MENTAS'),
-        'hatena_hotentry' => env('RSS_HATENA_HOTENTRY'),
+        'mentas' => env('RSS_MENTAS', 'https://menthas.com/programming/rss'),
+        'hatena_hotentry' => env('RSS_HATENA_HOTENTRY', 'https://b.hatena.ne.jp/hotentry/it.rss'),
     ],
 
     'lambda' => [
