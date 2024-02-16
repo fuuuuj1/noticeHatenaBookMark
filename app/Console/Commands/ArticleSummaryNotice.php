@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\RSSParseService;
+use App\Services\WebContentFetchService;
 use Illuminate\Console\Command;
 
 class ArticleSummaryNotice extends Command
@@ -19,23 +20,41 @@ class ArticleSummaryNotice extends Command
      *
      * @var string
      */
-    protected $description = 'はてなブックマークのテクノロジーカテゴリのホットエントリーを取得。
-        5つまでの記事を取得。
+    protected $description = '指定したサイトRSSの記事リンクを取得。
+        リンク先の記事を5つまで取得。
         chatGPT apiを使用して記事を要約。
         指定したSlackに通知する';
+
+    private RSSParseService $rss_parse_service;
+
+    private WebContentFetchService $web_content_fetch_service;
+
+    /**
+     * DIしたServiceクラスをプロパティに格納する
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->rss_parse_service = new RSSParseService(config('services.rss.mentas'));
+        $this->web_content_fetch_service = new WebContentFetchService();
+    }
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        // はてなブックマークのテクノロジーカテゴリのホットエントリーを取得する
-        // こちらの処理は専用のServiceクラスに切り出す
-        // 5つまでの記事URLを取得する
-        $parse_service = new RSSParseService();
-        // ここでエラーが発生する場合は処理を中断する
         try {
-            $hot_entries = $parse_service->fetchEntries(5);
+            $urls = $this->rss_parse_service->fetchEntries(5);
+        } catch (\Throwable $th) {
+            // 通知に関してはServiceクラス内で行う
+            $this->error($th->getMessage());
+            return;
+        }
+
+        // 取得したURLを元に記事本文を取得する
+        try {
+            $contents = $this->web_content_fetch_service->fetchContent($urls);
         } catch (\Throwable $th) {
             // 通知に関してはServiceクラス内で行う
             $this->error($th->getMessage());
@@ -43,11 +62,10 @@ class ArticleSummaryNotice extends Command
         }
 
         // ここからloopでの処理を予定
+        foreach ($contents as $content) {
+            // chatGPT apiを使用して記事を要約する
 
-        // 取得したリンク先の記事本文を取得するクラスを呼び出す
-
-        // chatGPT apiを使用して記事を要約する
-
-        // Slackに通知する
+            // Slackに通知する
+        }
     }
 }
