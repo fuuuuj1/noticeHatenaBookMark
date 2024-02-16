@@ -32,8 +32,10 @@ class WebContentFetchService
             ]);
 
             if ($response->failed()) {
-                // なぜ失敗したのかを例外に含める
-                throw new \RuntimeException('Failed to fetch content. ' . $response->body());
+                // なぜ失敗したのかをログに残す
+                logger()->error($response->body());
+                // TODO: slackにエラーを通知する
+                throw new \RuntimeException('Failed to fetch content.');
             }
 
             // json形式のレスポンスを配列に変換

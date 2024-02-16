@@ -93,6 +93,9 @@ class RSSParseService
 
             // レスポンスが失敗した場合は例外を投げる
             if ($response->failed()) {
+                // なぜ失敗したのかをログに残す
+                logger()->error($response->body());
+                // TODO: slackにエラーを通知する
                 throw new \InvalidArgumentException('Failed to fetch RSS URL.');
             }
 
