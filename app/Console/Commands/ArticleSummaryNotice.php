@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\OpenAIService;
 use App\Services\RSSParseService;
 use App\Services\WebContentFetchService;
 use Illuminate\Console\Command;
@@ -29,6 +30,8 @@ class ArticleSummaryNotice extends Command
 
     private WebContentFetchService $web_content_fetch_service;
 
+    private OpenAIService $openai_service;
+
     /**
      * DIしたServiceクラスをプロパティに格納する
      */
@@ -37,6 +40,7 @@ class ArticleSummaryNotice extends Command
         parent::__construct();
         $this->rss_parse_service = new RSSParseService(config('services.rss.mentas'));
         $this->web_content_fetch_service = new WebContentFetchService();
+        $this->openai_service = new OpenAIService();
     }
 
     /**
@@ -45,7 +49,7 @@ class ArticleSummaryNotice extends Command
     public function handle()
     {
         try {
-            $urls = $this->rss_parse_service->fetchEntries(5);
+            $urls = $this->rss_parse_service->fetchEntries();
         } catch (\Throwable $th) {
             // 通知に関してはServiceクラス内で行う
             $this->error($th->getMessage());
@@ -64,6 +68,7 @@ class ArticleSummaryNotice extends Command
         // ここからloopでの処理を予定
         foreach ($contents as $content) {
             // chatGPT apiを使用して記事を要約する
+            $response = $this->openai_service->fetch($content);
 
             // Slackに通知する
         }

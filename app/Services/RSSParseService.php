@@ -76,6 +76,10 @@ class RSSParseService
             return false;
         }
 
+        if (strpos($link, 'togetter.com') !== false) {
+            return false;
+        }
+
         return true;
     }
 
