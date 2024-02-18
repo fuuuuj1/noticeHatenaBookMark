@@ -27,7 +27,6 @@ class OpenAIService
             $result = OpenAI::chat()->create([
                 'model' => $this->use_model,
                 'temperature' => 0.0,
-                'json_format' => ['type' => 'json_object'],
                 'messages' => $this->setMessage($content),
                 'functions' => $this->setFunction(),
             ]);
@@ -75,9 +74,17 @@ class OpenAIService
     private function parseResponse(CreateResponse $res, array $content): array
     {
         $result = $res->choices[0];
+        $texts = [];
+
+        // 要約した内容を配列に変換する
+        $summaries = json_decode($result->message->functionCall->arguments, true);
+        foreach ($summaries['summary'] as $summary) {
+            $texts[] = $summary;
+        }
+
         return [
             'title' => $content['title'],
-            'content' => json_decode($result->message->functionCall->arguments, true),
+            'content' => $texts,
             'url' => $content['url'],
             'token' => $res->usage->totalTokens,
         ];
