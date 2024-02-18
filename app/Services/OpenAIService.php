@@ -10,7 +10,7 @@ use OpenAI\Responses\Chat\CreateResponse;
  */
 class OpenAIService
 {
-    private string $model = 'gpt-3.5-turbo-16k';
+    private string $use_model = 'gpt-3.5-turbo-0125';
 
     /**
      * OpenAIのAPIを叩いて、GPT-3.5のモデルでの応答を取得する
@@ -19,25 +19,49 @@ class OpenAIService
      * @return array
      * @throws \Throwable
      */
-    public static function fetch(array $content): array
+    public function fetch(array $content): array
     {
-        if (empty($content)) {
-            throw new \InvalidArgumentException('Content is empty.');
-        }
+        $this->validate($content);
 
         try {
             $result = OpenAI::chat()->create([
-                'model' => self::$model,
+                'model' => $this->use_model,
                 'temperature' => 0.0,
                 'json_format' => ['type' => 'json_object'],
-                'messages' => self::setMessage($content),
-                'functions' => self::setFunction(),
+                'messages' => $this->setMessage($content),
+                'functions' => $this->setFunction(),
             ]);
-            return self::parseResponse($result, $content);
+            return $this->parseResponse($result, $content);
         } catch (\Throwable $th) {
             // TODO: slackにエラーを通知する
             logger()->error($th);
             throw $th;
+        }
+    }
+
+    /**
+     * openAIに送るメッセージのバリデーション
+     *
+     * @param array $content
+     * [
+     *  'title' => '記事のタイトル',
+     *  'content' => '記事の内容',
+     *  'url' => '記事のURL'
+     * ]
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    private function validate(array $content): void
+    {
+        $rules = [
+            'title' => 'required|string',
+            'content' => 'required|string',
+            'url' => 'required|url',
+        ];
+        $validator = validator($content, $rules);
+        if ($validator->fails()) {
+            throw new \InvalidArgumentException($validator->errors()->first());
+            // TODO: slackにエラーを通知する
         }
     }
 
@@ -84,6 +108,7 @@ class OpenAIService
                 'content' => 'この記事の内容について、技術的な視点で要約をしてください。'
             ]
         ];
+        // 配列をjson形式に変換する
         return $message;
     }
 
