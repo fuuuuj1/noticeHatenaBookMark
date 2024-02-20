@@ -35,7 +35,11 @@ class OpenAIServiceTest extends TestCase
 
         $expected_data = [
             'title' => 'Test title',
-            'content' => 'This is a test response.',
+            'content' => [
+                'This is a test response 1.',
+                'This is a test response 2.',
+                'This is a test response 3.',
+            ],
             'url' => 'https://example.com',
             'token' => 100,
         ];
@@ -74,7 +78,13 @@ class OpenAIServiceTest extends TestCase
                         'message' => [
                             'function_call' => [
                                 'name' => 'text_summary',
-                                'arguments' => json_encode('This is a test response.')
+                                'arguments' => json_encode([
+                                    'summary' => [
+                                        'This is a test response 1.',
+                                        'This is a test response 2.',
+                                        'This is a test response 3.',
+                                    ],
+                                ])
                             ],
                         ],
                         'finish_reason' => 'function_call',
