@@ -2,7 +2,7 @@ name: Integration
 
 on:
   push:
-    branches: 
+    branches:
     - main
     - develop
     - feature/*
@@ -37,4 +37,5 @@ jobs:
         DB_DATABASE: database/database.sqlite
         SLACK_BOT_USER_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_TOKEN }}
         SLACK_BOT_USER_DEFAULT_CHANNEL: ${{ secrets.SLACK_BOT_USER_DEFAULT_CHANNEL }}
+        LAMBDA_ENDPOINT: ${{ secrets.LAMBDA_ENDPOINT }}
       run: vendor/bin/phpunit
