@@ -13,10 +13,11 @@ def lambda_handler(event, context):
         try:
             # ウェブページからHTMLを取得
             res = requests.get(url)
+            res.encoding = res.apparent_encoding
             html = res.text
 
             # BeautifulSoupでタイトルを取得
-            soup = BeautifulSoup(html, "html.parser")
+            soup = BeautifulSoup(html, "html.parser", from_encoding=res.encoding)
             title = soup.find("title").text if soup.find("title") else ""
 
             # extractcontent3で本文を取得
