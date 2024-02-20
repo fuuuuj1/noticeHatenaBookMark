@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Notifications\NewsDispatch;
 use App\Services\OpenAIService;
 use App\Services\RSSParseService;
 use App\Services\WebContentFetchService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
 
 class ArticleSummaryNotice extends Command
 {
@@ -48,6 +50,7 @@ class ArticleSummaryNotice extends Command
      */
     public function handle()
     {
+        $this->info('記事の要約処理を開始');
         try {
             $urls = $this->rss_parse_service->fetchEntries();
         } catch (\Throwable $th) {
@@ -65,12 +68,17 @@ class ArticleSummaryNotice extends Command
             return;
         }
 
-        // ここからloopでの処理を予定
         foreach ($contents as $content) {
-            // chatGPT apiを使用して記事を要約する
-            $response = $this->openai_service->fetch($content);
-
-            // Slackに通知する
+            try {
+                // chatGPT apiを使用して記事を要約する
+                $response = $this->openai_service->fetch($content);
+            } catch (\Throwable $th) {
+                $this->error($th->getMessage());
+                continue;
+            }
+            Notification::route('slack', config('services.slack.channel'))
+                ->notify(new NewsDispatch($response));
         }
+        $this->info('記事の要約処理を終了');
     }
 }
