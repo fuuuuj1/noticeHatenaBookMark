@@ -117,7 +117,7 @@ class ArticleSummaryNotice extends Command
     {
         logger()->error($th);
         $this->error($th->getMessage());
-        Notification::route('slack', config('services.slack.channel'))
+        Notification::route('slack', config('services.slack.alert_channel'))
             ->notify(new AlertDispatch($content, $th));
     }
 }
