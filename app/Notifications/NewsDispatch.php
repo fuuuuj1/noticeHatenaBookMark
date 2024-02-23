@@ -59,9 +59,6 @@ class NewsDispatch extends Notification
         // バリデーションエラーがある場合は例外をスロー
         $validator = Validator::make($content, $rules);
         if ($validator->fails()) {
-            // ログ出力は呼び出し元で行う
-            // TODO: 例外発生でのSlack通知を行う
-
             throw new \InvalidArgumentException($validator->errors()->first());
         }
     }
