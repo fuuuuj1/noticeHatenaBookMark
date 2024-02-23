@@ -88,7 +88,7 @@ class ArticleSummaryNotice extends Command
 
             try {
                 // 時折、文字化けにより通知失敗するので、後続処理を進めるために、try-catchにて処理
-                Notification::route('slack', config('services.slack.channel'))
+                Notification::route('slack', config('services.slack.notifications.channel'))
                     ->notify(new NewsDispatch($response));
             } catch (\Throwable $th) {
                 $this->throwError([
@@ -117,7 +117,7 @@ class ArticleSummaryNotice extends Command
     {
         logger()->error($th);
         $this->error($th->getMessage());
-        Notification::route('slack', config('services.slack.alert_channel'))
+        Notification::route('slack', config('services.slack.notifications.alert_channel'))
             ->notify(new AlertDispatch($content, $th));
     }
 }
