@@ -32,9 +32,6 @@ class WebContentFetchService
             ]);
 
             if ($response->failed()) {
-                // なぜ失敗したのかをログに残す
-                logger()->error($response->body());
-                // TODO: slackにエラーを通知する
                 throw new \RuntimeException('Failed to fetch content.');
             }
 
@@ -42,8 +39,6 @@ class WebContentFetchService
             return $response->json();
 
         } catch (\Throwable $th) {
-            logger()->error($th);
-            // TODO: slackにエラーを通知する
             throw $th;
         }
     }

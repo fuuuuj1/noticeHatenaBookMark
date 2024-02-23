@@ -2,12 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Notifications\AlertDispatch;
 use App\Notifications\NewsDispatch;
 use App\Services\OpenAIService;
 use App\Services\RSSParseService;
 use App\Services\WebContentFetchService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class ArticleSummaryNotice extends Command
 {
@@ -53,35 +55,69 @@ class ArticleSummaryNotice extends Command
         $this->info('記事の要約処理を開始');
         try {
             $urls = $this->rss_parse_service->fetchEntries();
-        } catch (\Throwable $th) {
-            // 通知に関してはServiceクラス内で行う
-            $this->error($th->getMessage());
+        } catch (Throwable $th) {
+            $this->throwError([
+                'class' => get_class($this->rss_parse_service),
+                'message' => 'RSSから記事のURL取得に失敗しました',
+            ], $th);
             return;
         }
 
         // 取得したURLを元に記事本文を取得する
         try {
             $contents = $this->web_content_fetch_service->fetchContent($urls);
-        } catch (\Throwable $th) {
-            // 通知に関してはServiceクラス内で行う
-            $this->error($th->getMessage());
+        } catch (Throwable $th) {
+            $this->throwError([
+                'class' => get_class($this->web_content_fetch_service),
+                'message' => 'スクレイピングによる記事本文の取得に失敗しました',
+            ], $th);
             return;
         }
 
         foreach ($contents as $content) {
             try {
-                // chatGPT apiを使用して記事を要約する
+                // openAI apiを使用して記事を要約する
                 $response = $this->openai_service->fetch($content);
+            } catch (Throwable $th) {
+                $this->throwError([
+                    'class' => get_class($this->openai_service),
+                    'message' => 'openAI apiを使用して記事の要約に失敗しました',
+                ], $th);
+                continue;
+            }
+
+            try {
                 // 時折、文字化けにより通知失敗するので、後続処理を進めるために、try-catchにて処理
-                Notification::route('slack', config('services.slack.channel'))
+                Notification::route('slack', config('services.slack.notifications.channel'))
                     ->notify(new NewsDispatch($response));
             } catch (\Throwable $th) {
-                $this->error($th->getMessage());
+                $this->throwError([
+                    'class' => NewsDispatch::class,
+                    'message' => '記事要約のSlack通知に失敗しました',
+                ], $th);
                 // TODO: Error が発生した場合は専用のcountをインクリメント
                 // 最後に例外発生のcountを元にSlack通知を行う
-                continue;
             }
         }
         $this->info('記事の要約処理を終了');
+    }
+
+    /**
+     * エラーをログに出力する & slackに通知する
+     *
+     * @param array $content
+     * [
+     *  'class' => , // エラーが発生したクラス名
+     *  'message' => , // エラーが発生した際の直前の処理内容
+     * ]
+     * @param Throwable $th
+     * @return void
+     */
+    private function throwError(array $content, Throwable $th): void
+    {
+        logger()->error($th);
+        $this->error($th->getMessage());
+        Notification::route('slack', config('services.slack.notifications.alert_channel'))
+            ->notify(new AlertDispatch($content, $th));
     }
 }
