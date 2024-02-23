@@ -32,8 +32,6 @@ class OpenAIService
             ]);
             return $this->parseResponse($result, $content);
         } catch (\Throwable $th) {
-            // TODO: slackにエラーを通知する
-            logger()->error($th);
             throw $th;
         }
     }
@@ -60,7 +58,6 @@ class OpenAIService
         $validator = validator($content, $rules);
         if ($validator->fails()) {
             throw new \InvalidArgumentException($validator->errors()->first());
-            // TODO: slackにエラーを通知する
         }
     }
 

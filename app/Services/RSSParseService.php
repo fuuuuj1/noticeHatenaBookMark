@@ -129,9 +129,6 @@ class RSSParseService
             }
             return $urls;
         } catch (\Throwable $th) {
-            // 例外をキャッチしてログに出力する
-            logger()->error($th);
-            // TODO: slackにエラーを通知する
             throw $th;
         }
     }
