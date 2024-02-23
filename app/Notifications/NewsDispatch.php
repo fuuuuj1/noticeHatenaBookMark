@@ -84,7 +84,7 @@ class NewsDispatch extends Notification
                     $text .= '• ' . $value . "\n";
                 }
                 // 要約をコードブロックで表示
-                $section->text("```$text```")->markdown();
+                $section->text($text)->markdown();
             })
             ->dividerBlock()
             ->sectionBlock(function (SectionBlock $section) {

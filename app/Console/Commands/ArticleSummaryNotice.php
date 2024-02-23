@@ -72,12 +72,15 @@ class ArticleSummaryNotice extends Command
             try {
                 // chatGPT apiを使用して記事を要約する
                 $response = $this->openai_service->fetch($content);
+                // 時折、文字化けにより通知失敗するので、後続処理を進めるために、try-catchにて処理
+                Notification::route('slack', config('services.slack.channel'))
+                    ->notify(new NewsDispatch($response));
             } catch (\Throwable $th) {
                 $this->error($th->getMessage());
+                // TODO: Error が発生した場合は専用のcountをインクリメント
+                // 最後に例外発生のcountを元にSlack通知を行う
                 continue;
             }
-            Notification::route('slack', config('services.slack.channel'))
-                ->notify(new NewsDispatch($response));
         }
         $this->info('記事の要約処理を終了');
     }
