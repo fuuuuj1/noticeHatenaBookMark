@@ -72,6 +72,16 @@ class NewsDispatch extends Notification
      */
     public function toSlack(): SlackMessage
     {
+        // memo
+        // slack 通知にて headerBlockを作成する時に
+        // 対象の文言がシングルバイト文字列で150文字を超えると、substr により文字列が切り捨てられる処理が実行される
+        // mb_substr により切り捨てではないので、不正な文字列が生成されて通知でのguzzleエラーが発生する
+        // そのため、予め文字列を切り捨てる
+        // substr を実行しているのはライブラリのコードであるため、こちらで対応する
+        if (strlen($this->content['title']) > 150) {
+            // 切り捨て数の57は 超えていた場合に ... を付与するため あえて -3 バイトをした数値
+            $this->content['title'] = mb_substr($this->content['title'], 0, 57, 'UTF-8') . '...';
+        }
         return (new SlackMessage)
             ->headerBlock($this->content['title'])
             ->sectionBlock(function (SectionBlock $section) {
