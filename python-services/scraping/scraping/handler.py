@@ -1,7 +1,6 @@
 import json
 import traceback
 import requests
-from bs4 import BeautifulSoup
 from extractcontent3 import ExtractContent
 
 def lambda_handler(event, context):
@@ -16,10 +15,6 @@ def lambda_handler(event, context):
             res.encoding = res.apparent_encoding
             html = res.text
 
-            # BeautifulSoupでタイトルを取得
-            soup = BeautifulSoup(html, "html.parser", from_encoding=res.encoding)
-            title = soup.find("title").text if soup.find("title") else ""
-
             # extractcontent3で本文を取得
             extractor = ExtractContent()
             extractor.analyse(html)
@@ -27,7 +22,6 @@ def lambda_handler(event, context):
 
             results.append({
                 'url': url,
-                'title': title,
                 'content': text
             })
         except Exception as e:
