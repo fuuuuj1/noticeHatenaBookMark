@@ -51,8 +51,14 @@ class RSSParseServiceTest extends TestCase
         $response = $rss_parse_service->fetchEntries();
 
         $expected_data = [
-            'https://example.com/item1',
-            'https://example.com/item2',
+            [
+                'title' => 'Item 1',
+                'url' => 'https://example.com/item1',
+            ],
+            [
+                'title' => 'Item 2',
+                'url' => 'https://example.com/item2',
+            ]
         ];
 
         $this->assertEquals($expected_data, $response);
