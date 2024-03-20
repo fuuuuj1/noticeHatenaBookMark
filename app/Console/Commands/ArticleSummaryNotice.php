@@ -54,7 +54,8 @@ class ArticleSummaryNotice extends Command
     {
         $this->info('記事の要約処理を開始');
         try {
-            $urls = $this->rss_parse_service->fetchEntries();
+            // 記事のURLとタイトルを取得
+            $articles = $this->rss_parse_service->fetchEntries();
         } catch (Throwable $th) {
             $this->throwError([
                 'class' => get_class($this->rss_parse_service),
@@ -65,7 +66,7 @@ class ArticleSummaryNotice extends Command
 
         // 取得したURLを元に記事本文を取得する
         try {
-            $contents = $this->web_content_fetch_service->fetchContent($urls);
+            $contents = $this->web_content_fetch_service->fetchContent($articles);
         } catch (Throwable $th) {
             $this->throwError([
                 'class' => get_class($this->web_content_fetch_service),

@@ -84,7 +84,7 @@ class RSSParseService
     }
 
     /**
-     * RSSをパースしてlinkを格納した配列を返す
+     * RSSをパースしてURLと記事のタイトルを格納した配列を返す
      *
      * @param int $limit
      * @return array
@@ -97,9 +97,6 @@ class RSSParseService
 
             // レスポンスが失敗した場合は例外を投げる
             if ($response->failed()) {
-                // なぜ失敗したのかをログに残す
-                logger()->error($response->body());
-                // TODO: slackにエラーを通知する
                 throw new \InvalidArgumentException('Failed to fetch RSS URL.');
             }
 
@@ -117,17 +114,20 @@ class RSSParseService
             // itemがchannelの中にある場合とない場合があるので、それぞれの場合で処理を分ける
             $items = $rss->channel->item ?? $rss->item;
 
-            // linkのみの配列を作成する
-            $urls = [];
+            // 取得したRSSの中からURLとタイトルを取得する
+            $articles = [];
             foreach ($items as $item) {
                 if ($this->checkLinkString($item->link)) {
-                    $urls[] = $item->link;
+                    $articles[] = [
+                        'title' => (string) $item->title,
+                        'url' => (string) $item->link,
+                    ];
                 }
-                if (count($urls) >= $limit) {
+                if (count($articles) >= $limit) {
                     break;
                 }
             }
-            return $urls;
+            return $articles;
         } catch (\Throwable $th) {
             throw $th;
         }
