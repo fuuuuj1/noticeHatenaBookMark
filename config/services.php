@@ -34,6 +34,8 @@ return [
     'rss' => [
         'mentas' => env('RSS_MENTAS', 'https://menthas.com/programming/rss'),
         'hatena_hotentry' => env('RSS_HATENA_HOTENTRY', 'https://b.hatena.ne.jp/hotentry/it.rss'),
+        'qiita' => env('RSS_QIITA', 'https://qiita.com/popular-items/feed.atom'),
+        'zenn' => env('RSS_ZENN', 'https://zenn.dev/feed'),
     ],
 
     'lambda' => [

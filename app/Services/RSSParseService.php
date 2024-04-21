@@ -106,15 +106,37 @@ class RSSParseService
             $rss = new SimpleXMLElement($response->body());
 
             // itemがchannelの中にある場合とない場合があるので、それぞれの場合で処理を分ける
-            $items = $rss->channel->item ?? $rss->item;
+            // 1. channelの中にitemがある場合
+            // 2. channelの中にitemがない場合
+            // 3. channelではなく、entryがある場合
+            $items = null;
+            if (isset($rss->channel->item)) {
+                $items = $rss->channel->item;
+            } elseif (isset($rss->item)) {
+                $items = $rss->item;
+            } elseif (isset($rss->entry)) {
+                $items = $rss->entry;
+            } else {
+                throw new \InvalidArgumentException('Invalid RSS feed.');
+            }
 
             // 取得したRSSの中からURLとタイトルを取得する
             $articles = [];
             foreach ($items as $item) {
-                if ($this->checkLinkString($item->link)) {
+
+                // 記事へのURLがさらにxmlの中にある場合があるので、取得方式を変える
+                if (isset($item->link['href'])) {
+                    $link = (string) $item->link['href'];
+                } elseif (isset($item->link)) {
+                    $link = (string) $item->link;
+                } else {
+                    continue;
+                }
+
+                if ($this->checkLinkString($link)) {
                     $articles[] = [
                         'title' => (string) $item->title,
-                        'url' => (string) $item->link,
+                        'url' => $link,
                     ];
                 }
                 if (count($articles) >= $limit) {
